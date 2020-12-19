@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
 
 
 User = get_user_model()
@@ -10,6 +11,10 @@ class Survey(models.Model):
     start_date = models.DateField()
     finish_date = models.DateField()
     description = models.CharField(max_length=200)
+
+    def clean(self):
+        if self.finish_date <= self.start_date:
+            raise ValidationError('Finish date must be later than start date!')
 
     def __str__(self):
         return self.name
