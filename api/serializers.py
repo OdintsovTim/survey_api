@@ -4,6 +4,12 @@ from .models import Survey, Question
 
 
 class SurveySerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        instance = Survey(**attrs)
+        instance.clean()
+
+        return attrs
+
     class Meta:
         fields = ('name', 'start_date', 'finish_date', 'description')
         model = Survey
