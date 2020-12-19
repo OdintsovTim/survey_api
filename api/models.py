@@ -1,3 +1,5 @@
+import datetime
+
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -15,6 +17,12 @@ class Survey(models.Model):
     def clean(self):
         if self.finish_date <= self.start_date:
             raise ValidationError('Finish date must be later than start date!')
+        if self.start_date < datetime.date.today():
+            raise ValidationError('You cannot create a survey retroactively')
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super(Survey, self).save(*args, **kwargs)
 
     def __str__(self):
         return self.name
