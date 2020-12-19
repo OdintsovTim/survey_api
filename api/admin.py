@@ -8,7 +8,7 @@ class SurveyAdmin(admin.ModelAdmin):
 
 
 class QuestionAdmin(admin.ModelAdmin):
-    list_display = ('pk', 'text', 'response_type', 'survey')
+    list_display = ('pk', 'text', 'question_type', 'survey')
 
 
 admin.site.register(Survey, SurveyAdmin)
