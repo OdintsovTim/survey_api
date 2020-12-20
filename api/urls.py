@@ -5,7 +5,7 @@ from . import views
 
 
 router = DefaultRouter()
-router.register(r'surveys', views.SurveyViewSet)
+router.register(r'surveys', views.SurveyViewSet, basename='surveys')
 router.register(r'questions', views.QuestionViewSet)
 
 urlpatterns = [
