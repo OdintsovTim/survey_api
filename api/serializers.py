@@ -1,19 +1,29 @@
-from rest_framework import serializers
+import datetime
 
-from .models import Survey, Question
+from rest_framework import serializers
+from rest_framework.serializers import ValidationError
+
+from .models import Survey, Question, Answer
 
 
 class SurveySerializer(serializers.ModelSerializer):
-    questions = serializers.StringRelatedField(many=True)
-
     def validate(self, attrs):
-        instance = Survey(**attrs)
-        instance.clean()
+        print(attrs)
+        if attrs['finish_date'] <= attrs['start_date']:
+            raise ValidationError('Finish date must be later than start date!')
+        if attrs['start_date'] < datetime.date.today():
+            raise ValidationError('You cannot create a survey retroactively')
 
         return attrs
 
+    def update(self, instance, validated_data):
+        if 'finish_date' in validated_data:
+            raise ValidationError('You must not change finish_date field.')
+
+        return super().update(instance, validated_data)
+
     class Meta:
-        fields = ('name', 'start_date', 'finish_date', 'description', 'questions')
+        fields = ('name', 'start_date', 'finish_date', 'description')
         model = Survey
 
 
