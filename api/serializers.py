@@ -4,6 +4,8 @@ from .models import Survey, Question
 
 
 class SurveySerializer(serializers.ModelSerializer):
+    questions = serializers.StringRelatedField(many=True)
+
     def validate(self, attrs):
         instance = Survey(**attrs)
         instance.clean()
@@ -11,11 +13,13 @@ class SurveySerializer(serializers.ModelSerializer):
         return attrs
 
     class Meta:
-        fields = ('name', 'start_date', 'finish_date', 'description')
+        fields = ('name', 'start_date', 'finish_date', 'description', 'questions')
         model = Survey
 
 
 class QuestionSerializer(serializers.ModelSerializer):
+    survey = serializers.StringRelatedField(source='survey.name')
+
     class Meta:
-        fields = ('text', 'response_type', 'survey')
+        fields = ('text', 'question_type', 'survey')
         model = Question
