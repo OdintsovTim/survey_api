@@ -32,9 +32,23 @@ class Survey(models.Model):
 
 
 class Question(models.Model):
+    TEXT_ANSWER = 'T'
+    SINGLE_OPTION = 'SO'
+    MULTIPLE_OPTIONS = 'MO'
+    QUESTION_TYPE_CHOICES = [
+        (TEXT_ANSWER, 'Text answer'),
+        (SINGLE_OPTION, 'Single option'),
+        (MULTIPLE_OPTIONS, 'Multiple options'),
+    ]
+
     text = models.CharField(max_length=300)
-    question_type = models.CharField(max_length=100)
-    survey = models.ForeignKey(Survey, on_delete=models.SET_NULL, related_name='questions', null=True)
+    question_type = models.CharField(max_length=100, default=TEXT_ANSWER, choices=QUESTION_TYPE_CHOICES)
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='questions')
+
+    def __str__(self):
+        return self.text
+
+
 
     def __str__(self):
         return self.text
