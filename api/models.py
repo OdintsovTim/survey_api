@@ -58,9 +58,10 @@ class Option(models.Model):
 
 
 class Answer(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='answers')
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
-    answer = models.CharField(max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='text_answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='text_answers')
+    text_answer = models.CharField(max_length=300, blank=True)
+    option_selection = models.ManyToManyField(Option, blank=True)
 
 
 class UsersSurveyState(models.Model):
