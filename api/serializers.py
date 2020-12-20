@@ -18,8 +18,9 @@ class SurveySerializer(serializers.ModelSerializer):
 
 
 class QuestionSerializer(serializers.ModelSerializer):
-    survey = serializers.StringRelatedField(source='survey.name')
+    survey = serializers.SlugRelatedField(slug_field='name', queryset=Survey.objects.all())
+    options = serializers.StringRelatedField(many=True)
 
     class Meta:
-        fields = ('text', 'question_type', 'survey')
+        fields = ('text', 'question_type', 'survey', 'options')
         model = Question
