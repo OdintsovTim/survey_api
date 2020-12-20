@@ -5,8 +5,12 @@ from .serializers import SurveySerializer, QuestionSerializer
 
 
 class SurveyViewSet(viewsets.ModelViewSet):
-    queryset = Survey.objects.all()
     serializer_class = SurveySerializer
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Survey.objects.all()
+        return Survey.objects.get_active_surveys()
 
 
 class QuestionViewSet(viewsets.ModelViewSet):
