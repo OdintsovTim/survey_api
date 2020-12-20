@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Survey, Question
+from .models import Survey, Question, Option
 
 
 class SurveyAdmin(admin.ModelAdmin):
@@ -13,3 +13,4 @@ class QuestionAdmin(admin.ModelAdmin):
 
 admin.site.register(Survey, SurveyAdmin)
 admin.site.register(Question, QuestionAdmin)
+admin.site.register(Option)
