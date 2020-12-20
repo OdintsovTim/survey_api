@@ -7,6 +7,7 @@ from . import views
 router = DefaultRouter()
 router.register(r'surveys', views.SurveyViewSet, basename='surveys')
 router.register(r'questions', views.QuestionViewSet)
+router.register(r'answers', views.AnswerViewSet, basename='answers')
 
 urlpatterns = [
     path('v1/', include(router.urls))
