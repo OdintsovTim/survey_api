@@ -4,6 +4,8 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
+from .managers import SurveyManager
+
 
 User = get_user_model()
 
@@ -13,6 +15,7 @@ class Survey(models.Model):
     start_date = models.DateField()
     finish_date = models.DateField()
     description = models.CharField(max_length=200)
+    objects = SurveyManager()
 
     def clean(self):
         if self.finish_date <= self.start_date:
@@ -31,7 +34,7 @@ class Survey(models.Model):
 class Question(models.Model):
     text = models.CharField(max_length=300)
     question_type = models.CharField(max_length=100)
-    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='questions')
+    survey = models.ForeignKey(Survey, on_delete=models.SET_NULL, related_name='questions', null=True)
 
     def __str__(self):
         return self.text
