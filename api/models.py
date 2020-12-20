@@ -17,16 +17,6 @@ class Survey(models.Model):
     description = models.CharField(max_length=200)
     objects = SurveyManager()
 
-    def clean(self):
-        if self.finish_date <= self.start_date:
-            raise ValidationError('Finish date must be later than start date!')
-        if self.start_date < datetime.date.today():
-            raise ValidationError('You cannot create a survey retroactively')
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super(Survey, self).save(*args, **kwargs)
-
     def __str__(self):
         return self.name
 
@@ -58,8 +48,8 @@ class Option(models.Model):
 
 
 class Answer(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='text_answers')
-    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='text_answers')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='answers')
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
     text_answer = models.CharField(max_length=300, blank=True)
     option_selection = models.ManyToManyField(Option, blank=True)
 
