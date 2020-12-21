@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 
-from .managers import SurveyManager
+from .managers import SurveyManager, DoneSurveyManager
 
 
 User = get_user_model()
@@ -59,3 +59,10 @@ class UsersSurveyState(models.Model):
     survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='serveys_state')
     last_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='serveys_state')
     is_finished = models.BooleanField()
+
+
+class DoneSurvey(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='survey_answers')
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='survey_answers')
+    answers = models.ManyToManyField(Answer, related_name='survey_answers')
+    objects = DoneSurveyManager()

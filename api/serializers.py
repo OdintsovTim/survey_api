@@ -54,3 +54,18 @@ class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         fields = ('user', 'question', 'text_answer', 'option_selection')
         model = Answer
+
+
+class DoneSurveyAnswerSerializer(AnswerSerializer):
+    class Meta(AnswerSerializer.Meta):
+        fields = ('question', 'text_answer', 'option_selections')
+
+
+class DoneSurveySerializer(serializers.ModelSerializer):
+    user = serializers.SlugRelatedField(slug_field='username', read_only=True)
+    survey = serializers.SlugRelatedField(slug_field='name', read_only=True)
+    answers = DoneSurveyAnswerSerializer(many=True)
+
+    class Meta:
+        fields = ('user', 'survey', 'answers')
+        model = DoneSurvey

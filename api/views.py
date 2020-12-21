@@ -28,4 +28,12 @@ class AnswerViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-        print(serializer)
+
+
+class DoneSurveyViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = DoneSurveySerializer
+
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return DoneSurvey.objects.all()
+        return DoneSurvey.objects.get_own_done_surveys(self.request.user)
