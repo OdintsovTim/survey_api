@@ -1,11 +1,9 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.shortcuts import redirect
 
-from rest_framework import viewsets, status
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
-from rest_framework.serializers import ValidationError
 
 from .models import Survey, Question, Answer, UsersSurveyState, DoneSurvey
 from .permissions import IsAdminOrReadOnly
@@ -14,13 +12,13 @@ from .serializers import SurveySerializer, QuestionSerializer, AnswerSerializer,
 
 class SurveyViewSet(viewsets.ModelViewSet):
     serializer_class = SurveySerializer
-    # permission_classes = (IsAdminOrReadOnly,)
+    permission_classes = (IsAdminOrReadOnly,)
     queryset = Survey.objects.all()
 
-    # def get_queryset(self):
-    #     if self.request.user.is_staff:
-    #         return Survey.objects.all()
-    #     return Survey.objects.get_active_surveys()
+    def get_queryset(self):
+        if self.request.user.is_staff:
+            return Survey.objects.all()
+        return Survey.objects.get_active_surveys()
 
     @action(detail=True, methods=['get'])
     def start(self, request, pk=None):
@@ -49,7 +47,7 @@ class SurveyViewSet(viewsets.ModelViewSet):
 class QuestionViewSet(viewsets.ModelViewSet):
     queryset = Question.objects.all()
     serializer_class = QuestionSerializer
-    # permission_classes = (IsAdminUser,)
+    permission_classes = (IsAdminUser,)
 
 
 class AnswerViewSet(viewsets.ModelViewSet):
