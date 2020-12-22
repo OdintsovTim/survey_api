@@ -4,10 +4,16 @@ from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
-from .models import Survey, Question, Answer, Option, User, DoneSurvey
+from .models import Survey, Question, Answer, Option, DoneSurvey
 
 
 class OptionSerializer(serializers.ModelSerializer):
+    def validate(self, attrs):
+        if attrs['question'].question_type == 'T':
+            raise ValidationError('It is text question')
+
+        return attrs
+
     class Meta:
         model = Option
         fields = ('text', 'question')
@@ -61,27 +67,23 @@ class SurveySerializer(WritableNestedModelSerializer):
         model = Survey
 
 
-class AnswerSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField('username', queryset=User.objects.all())
+class AnswerSerializer(WritableNestedModelSerializer):
+    user = serializers.SlugRelatedField('username', read_only=True)
     question = serializers.SlugRelatedField(
         slug_field='text',
         queryset=Question.objects.all(),
     )
-    option_selections = serializers.SlugRelatedField(
-        slug_field='text',
-        many=True,
-        queryset=Option.objects.all(),
-        required=False,
-    )
+    option_selections = OptionSerializer(many=True, required=False)
 
     def validate(self, attrs):
-        if attrs['question'].question_type == 'T' and not attrs['text_answer']:
+        if attrs['question'].question_type == 'T' and not attrs.get('text_answer'):
             raise ValidationError('You have to write answer')
-        if attrs['question'].question_type == 'SO' and not attrs['option_selections']:
+        if attrs['question'].question_type == 'SO' and not attrs.get('option_selections'):
             raise ValidationError('You have to select one option')
-        if attrs['question'].question_type == 'SO' and not len(attrs['option_selections']):
-            raise ValidationError('You have to select one option')
-        if attrs['question'].question_type == 'MO' and not len(attrs['option_selections']):
+        elif (attrs['question'].question_type == 'SO'
+              and (len(attrs['option_selections']) > 1 or self.initial_data.get('option_selections'))):
+            raise ValidationError('You have to select only one option')
+        if attrs['question'].question_type == 'MO' and not len(attrs.get('option_selections')):
             raise ValidationError('You have to select one option')
 
         return attrs

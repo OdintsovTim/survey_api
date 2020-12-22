@@ -9,6 +9,7 @@ router.register(r'surveys', views.SurveyViewSet, basename='surveys')
 router.register(r'questions', views.QuestionViewSet)
 router.register(r'answers', views.AnswerViewSet, basename='answers')
 router.register(r'done-surveys', views.DoneSurveyViewSet, basename='done_surveys')
+router.register(r'options', views.OptionViewSet, basename='options')
 
 urlpatterns = [
     path('', include(router.urls)),

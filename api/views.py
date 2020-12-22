@@ -1,13 +1,12 @@
-from django.core.exceptions import ObjectDoesNotExist
-
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
+from rest_framework.serializers import ValidationError
 
-from .models import Survey, Question, Answer, UsersSurveyState, DoneSurvey
+from .models import Survey, Question, Answer, DoneSurvey, Option
 from .permissions import IsAdminOrReadOnly
-from .serializers import SurveySerializer, QuestionSerializer, AnswerSerializer, DoneSurveySerializer
+from .serializers import SurveySerializer, QuestionSerializer, AnswerSerializer, DoneSurveySerializer, OptionSerializer
 
 
 class SurveyViewSet(viewsets.ModelViewSet):
@@ -22,24 +21,12 @@ class SurveyViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def start(self, request, pk=None):
-        current_questions_number = 0
         survey = self.get_object()
+        if DoneSurvey.objects.filter(survey=survey, user=request.user).exists():
+            raise ValidationError('You can not take the survey twice')
 
-        try:
-            current_questions_number = UsersSurveyState.objects.get(
-                user=request.user,
-                survey=survey
-            ).current_questions_number
-        except ObjectDoesNotExist:
-            UsersSurveyState.objects.create(
-                user=request.user,
-                survey=survey,
-                current_questions_number=0,
-                is_finished=False
-            )
-
-        question = Question.objects.filter(survey=pk)[current_questions_number]
-        serializer = QuestionSerializer(question)
+        questions = Question.objects.filter(survey=survey)
+        serializer = QuestionSerializer(questions, many=True)
 
         return Response(serializer.data)
 
@@ -65,3 +52,8 @@ class DoneSurveyViewSet(viewsets.ReadOnlyModelViewSet):
         if self.request.user.is_staff:
             return DoneSurvey.objects.all()
         return DoneSurvey.objects.get_own_done_surveys(self.request.user)
+
+
+class OptionViewSet(viewsets.ModelViewSet):
+    serializer_class = OptionSerializer
+    queryset = Option
