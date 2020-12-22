@@ -1,58 +1,93 @@
 import datetime
 
+from drf_writable_nested import WritableNestedModelSerializer
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
 
-from .models import Survey, Question, Answer
+from .models import Survey, Question, Answer, Option, User, DoneSurvey
 
 
-class SurveySerializer(serializers.ModelSerializer):
-    def validate(self, attrs):
-        print(attrs)
-        if attrs['finish_date'] <= attrs['start_date']:
-            raise ValidationError('Finish date must be later than start date!')
-        if attrs['start_date'] < datetime.date.today():
-            raise ValidationError('You cannot create a survey retroactively')
-
-        return attrs
-
-    def update(self, instance, validated_data):
-        if 'finish_date' in validated_data:
-            raise ValidationError('You must not change finish_date field.')
-
-        return super().update(instance, validated_data)
-
+class OptionSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('name', 'start_date', 'finish_date', 'description')
-        model = Survey
+        model = Option
+        fields = ('text', 'question')
 
 
-class QuestionSerializer(serializers.ModelSerializer):
+class OptionQuestionSerializer(OptionSerializer):
+    class Meta(OptionSerializer.Meta):
+        fields = ('text',)
+
+
+class QuestionSerializer(WritableNestedModelSerializer):
     survey = serializers.SlugRelatedField(slug_field='name', queryset=Survey.objects.all())
-    options = serializers.StringRelatedField(many=True)
+    options = OptionQuestionSerializer(many=True, required=False)
 
     class Meta:
         fields = ('text', 'question_type', 'survey', 'options')
         model = Question
 
 
+class QuestionSurveySerializer(QuestionSerializer):
+    class Meta(QuestionSerializer.Meta):
+        fields = ('text', 'question_type', 'options')
+
+
+class SurveySerializer(WritableNestedModelSerializer):
+    questions = QuestionSurveySerializer(many=True, required=True)
+
+    def validate(self, attrs):
+        if self.context['request'].method == 'PATCH':
+            if attrs.get('start_date'):
+                raise ValidationError('You must not change start_date field.')
+
+            start_date = self.instance.start_date
+            finish_date = attrs.get('finish_date', self.instance.finish_date)
+            self.validate_finish_later_start(start_date, finish_date)
+        else:
+            self.validate_finish_later_start(attrs['start_date'], attrs['finish_date'])
+
+            if attrs['start_date'] < datetime.date.today():
+                raise ValidationError('You cannot create a survey retroactively')
+
+        return attrs
+
+    @staticmethod
+    def validate_finish_later_start(start_date, finish_date):
+        if finish_date <= start_date:
+            raise ValidationError('Finish date must be later than start date!')
+
+    class Meta:
+        fields = ('name', 'start_date', 'finish_date', 'description', 'questions')
+        model = Survey
+
+
 class AnswerSerializer(serializers.ModelSerializer):
-    user = serializers.SlugRelatedField('username', read_only=True)
+    user = serializers.SlugRelatedField('username', queryset=User.objects.all())
+    question = serializers.SlugRelatedField(
+        slug_field='text',
+        queryset=Question.objects.all(),
+    )
+    option_selections = serializers.SlugRelatedField(
+        slug_field='text',
+        many=True,
+        queryset=Option.objects.all(),
+        required=False,
+    )
 
     def validate(self, attrs):
         if attrs['question'].question_type == 'T' and not attrs['text_answer']:
             raise ValidationError('You have to write answer')
-        if attrs['question'].question_type == 'SO' and not attrs['option_selection']:
+        if attrs['question'].question_type == 'SO' and not attrs['option_selections']:
             raise ValidationError('You have to select one option')
-        if attrs['question'].question_type == 'SO' and not len(attrs['option_selection']):
+        if attrs['question'].question_type == 'SO' and not len(attrs['option_selections']):
             raise ValidationError('You have to select one option')
-        if attrs['question'].question_type == 'MO' and not len(attrs['option_selection']):
+        if attrs['question'].question_type == 'MO' and not len(attrs['option_selections']):
             raise ValidationError('You have to select one option')
 
         return attrs
 
     class Meta:
-        fields = ('user', 'question', 'text_answer', 'option_selection')
+        fields = ('user', 'question', 'text_answer', 'option_selections')
         model = Answer
 
 

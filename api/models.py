@@ -1,8 +1,5 @@
-import datetime
-
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.core.exceptions import ValidationError
 
 from .managers import SurveyManager, DoneSurveyManager
 
@@ -51,18 +48,18 @@ class Answer(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='answers')
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='answers')
     text_answer = models.CharField(max_length=300, blank=True)
-    option_selection = models.ManyToManyField(Option, blank=True)
+    option_selections = models.ManyToManyField(Option, blank=True)
 
 
 class UsersSurveyState(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='serveys_state')
-    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='serveys_state')
-    last_question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name='serveys_state')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='surveys_state')
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='surveys_state')
+    current_questions_number = models.PositiveSmallIntegerField()
     is_finished = models.BooleanField()
 
 
 class DoneSurvey(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='survey_answers')
-    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='survey_answers')
-    answers = models.ManyToManyField(Answer, related_name='survey_answers')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='done_surveys')
+    survey = models.ForeignKey(Survey, on_delete=models.CASCADE, related_name='done_surveys')
+    answers = models.ManyToManyField(Answer, related_name='done_surveys')
     objects = DoneSurveyManager()

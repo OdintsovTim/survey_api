@@ -12,4 +12,3 @@ class SurveyManager(models.Manager):
 class DoneSurveyManager(models.Manager):
     def get_own_done_surveys(self, user):
         return self.filter(user__id=user.id)
-

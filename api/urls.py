@@ -11,5 +11,5 @@ router.register(r'answers', views.AnswerViewSet, basename='answers')
 router.register(r'done-surveys', views.DoneSurveyViewSet, basename='done_surveys')
 
 urlpatterns = [
-    path('v1/', include(router.urls))
+    path('', include(router.urls)),
 ]
